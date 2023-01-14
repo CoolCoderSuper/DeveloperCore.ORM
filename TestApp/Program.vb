@@ -4,14 +4,14 @@ Module Program
 
     Sub Main(args As String())
         Dim dc As New DataContext("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True") With {.EnableChangeTracking = True}
-        Dim res As List(Of User) = dc.Query(Of User)("select * from [User]")
-        Dim objUser As New User() With {.FullName = "Sup"}
+        Dim res As List(Of User) = dc.Fetch(Of User)("select * from [User] where Id > @Item1 or Id = @Item2", 3, 2)
+        'Dim objUser As New User() With {.FullName = "Sup"}
         'dc.Insert(objUser)
         'dc.Delete(res.Last)
         'transaction stuff
-        dc.InsertOnSubmit(objUser)
-        dc.DeleteOnSubmit(res.Last)
-        dc.SubmitChanges()
+        'dc.InsertOnSubmit(objUser)
+        'dc.DeleteOnSubmit(res.Last)
+        'dc.SubmitChanges()
     End Sub
 
 End Module

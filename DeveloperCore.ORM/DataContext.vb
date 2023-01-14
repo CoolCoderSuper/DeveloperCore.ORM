@@ -20,11 +20,19 @@ Public Class DataContext
         _conn = New SqlConnection(connectionString)
     End Sub
 
-    Public Function Query(sql As String, type As Type) As List(Of Object)
+    Public Function Fetch(sql As String, type As Type, ParamArray params As Object()) As List(Of Object)
         Try
             _conn.Open()
             Dim results As New List(Of Object)
             Dim cmd As New SqlCommand(sql, _conn)
+            For i As Integer = 0 To params.Length - 1
+                Dim param As SqlParameter = cmd.CreateParameter
+                With param
+                    .ParameterName = $"@Item{i + 1}"
+                    .Value = params(i)
+                End With
+                cmd.Parameters.Add(param)
+            Next
             Dim adp As New SqlDataAdapter(cmd)
             Dim dt As New DataTable
             adp.Fill(dt)
@@ -57,8 +65,8 @@ Public Class DataContext
         Return If(ignoreAttr Is Nothing, resProp, Nothing)
     End Function
 
-    Public Function Query(Of T)(sql As String) As List(Of T)
-        Return Query(sql, GetType(T)).Cast(Of T).ToList
+    Public Function Fetch(Of T)(sql As String, ParamArray params As Object()) As List(Of T)
+        Return Fetch(sql, GetType(T), params).Cast(Of T).ToList
     End Function
 
     Public Sub Insert(obj As Object, type As Type)
