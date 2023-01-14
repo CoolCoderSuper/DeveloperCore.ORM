@@ -7,6 +7,7 @@ Public Class DataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
     Public ReadOnly Property ConnectionString As String
+    Public Property EnableChangeTracking As Boolean = False
 
     Public ReadOnly Property ChangeSet As ChangeSet
         Get
@@ -33,6 +34,7 @@ Public Class DataContext
                     Dim prop As PropertyInfo = GetProp(type, dc.ColumnName)
                     prop?.SetValue(obj, dr(dc.ColumnName))
                 Next
+                If EnableChangeTracking Then _changeSet.Updates.Add(obj)
                 results.Add(obj)
             Next
             Return results
