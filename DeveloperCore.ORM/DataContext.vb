@@ -3,6 +3,7 @@ Imports System.Reflection
 Imports System.Text
 Imports Microsoft.Data.SqlClient
 Imports DeveloperCore.ORM.Columns
+Imports System.Linq.Expressions
 
 Public Class DataContext
     ReadOnly _conn As SqlConnection
@@ -75,7 +76,7 @@ Public Class DataContext
         Try
             _conn.Open()
             transaction = _conn.BeginTransaction
-            InsertCore(obj, type, transaction)
+            Insert(obj, type, transaction)
             transaction.Commit()
         Catch ex As Exception
             Try
@@ -89,7 +90,7 @@ Public Class DataContext
         End Try
     End Sub
 
-    Private Sub InsertCore(obj As Object, type As Type, transaction As SqlTransaction)
+    Public Sub Insert(obj As Object, type As Type, transaction As SqlTransaction)
         Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
         Dim sql As New StringBuilder($"insert into [{type.Name}] values(")
         Dim cmd As New SqlCommand() With {.Connection = _conn, .Transaction = transaction}
@@ -115,7 +116,7 @@ Public Class DataContext
         Try
             _conn.Open()
             transaction = _conn.BeginTransaction()
-            UpdateCore(obj, type, transaction)
+            Update(obj, type, transaction)
             transaction.Commit()
         Catch ex As Exception
             Try
@@ -129,7 +130,7 @@ Public Class DataContext
         End Try
     End Sub
 
-    Private Sub UpdateCore(obj As Object, type As Type, transaction As SqlTransaction)
+    Public Sub Update(obj As Object, type As Type, transaction As SqlTransaction)
         Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
         Dim keyNameAttr As ColumnNameAttribute = keyProp.GetCustomAttribute(Of ColumnNameAttribute)
         Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
@@ -165,7 +166,7 @@ Public Class DataContext
         Try
             _conn.Open()
             transaction = _conn.BeginTransaction
-            DeleteCore(obj, type, transaction)
+            Delete(obj, type, transaction)
             transaction.Commit()
         Catch ex As Exception
             Try
@@ -179,7 +180,7 @@ Public Class DataContext
         End Try
     End Sub
 
-    Private Sub DeleteCore(obj As Object, type As Type, transaction As SqlTransaction)
+    Public Sub Delete(obj As Object, type As Type, transaction As SqlTransaction)
         Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
         Dim cmd As New SqlCommand($"delete from [{type.Name}] where [{keyProp.Name}]=@{keyProp.Name}", _conn, transaction)
         Dim param As SqlParameter = cmd.CreateParameter
@@ -213,13 +214,13 @@ Public Class DataContext
             _conn.Open()
             transaction = _conn.BeginTransaction
             For Each insertObj As Object In _changeSet.Inserts
-                InsertCore(insertObj, insertObj.GetType, transaction)
+                Insert(insertObj, insertObj.GetType, transaction)
             Next
             For Each updateObj As Object In _changeSet.Updates
-                UpdateCore(updateObj, updateObj.GetType, transaction)
+                Update(updateObj, updateObj.GetType, transaction)
             Next
             For Each deleteObj As Object In _changeSet.Deletes
-                DeleteCore(deleteObj, deleteObj.GetType, transaction)
+                Delete(deleteObj, deleteObj.GetType, transaction)
             Next
             transaction.Commit()
             _changeSet = New ChangeSet
@@ -234,5 +235,11 @@ Public Class DataContext
             _conn.Close()
         End Try
     End Sub
+
+    Public Function Query(Of T)(exp As Expression(Of Func(Of T, Boolean))) As List(Of T)
+        While exp.CanReduce
+            exp = exp.Reduce
+        End While
+    End Function
 
 End Class

@@ -13,6 +13,7 @@ Module Program
         'dc.InsertOnSubmit(objUser)
         'dc.DeleteOnSubmit(res.Last)
         'dc.SubmitChanges()
+        dc.Query(Of User)(Function(x) x.Id > 3)
     End Sub
 
 End Module
