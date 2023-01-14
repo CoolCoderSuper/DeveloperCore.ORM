@@ -2,6 +2,7 @@ Imports System.Data
 Imports System.Reflection
 Imports System.Text
 Imports Microsoft.Data.SqlClient
+Imports DeveloperCore.ORM.Columns
 
 Public Class DataContext
     ReadOnly _conn As SqlConnection

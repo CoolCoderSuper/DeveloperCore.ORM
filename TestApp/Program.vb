@@ -1,4 +1,5 @@
 Imports DeveloperCore.ORM
+Imports DeveloperCore.ORM.Columns
 
 Module Program
 
