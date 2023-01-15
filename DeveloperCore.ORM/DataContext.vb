@@ -1,9 +1,9 @@
 Imports System.Data
+Imports System.Linq.Expressions
 Imports System.Reflection
 Imports System.Text
-Imports Microsoft.Data.SqlClient
 Imports DeveloperCore.ORM.Columns
-Imports System.Linq.Expressions
+Imports Microsoft.Data.SqlClient
 
 Public Class DataContext
     ReadOnly _conn As SqlConnection
