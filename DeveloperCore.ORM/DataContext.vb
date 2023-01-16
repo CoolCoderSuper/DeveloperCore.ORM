@@ -2,7 +2,7 @@ Imports System.Data
 Imports System.Linq.Expressions
 Imports System.Reflection
 Imports System.Text
-Imports DeveloperCore.ORM.Columns
+Imports DeveloperCore.ORM.Attributes
 Imports Microsoft.Data.SqlClient
 
 Public Class DataContext
@@ -91,12 +91,13 @@ Public Class DataContext
     End Sub
 
     Public Sub Insert(obj As Object, type As Type, transaction As SqlTransaction)
+        Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
         Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
-        Dim sql As New StringBuilder($"insert into [{type.Name}] values(")
+        Dim sql As New StringBuilder($"insert into [{If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name)}] values(")
         Dim cmd As New SqlCommand() With {.Connection = _conn, .Transaction = transaction}
         For Each prop As PropertyInfo In props
             sql.Append($"@{prop.Name}{If(prop Is props.Last, ")", ",")}")
-            Dim param As SqlParameter = cmd.CreateParameter
+        Dim param As SqlParameter = cmd.CreateParameter
             With param
                 .ParameterName = $"@{prop.Name}"
                 .Value = prop.GetValue(obj)
@@ -131,10 +132,11 @@ Public Class DataContext
     End Sub
 
     Public Sub Update(obj As Object, type As Type, transaction As SqlTransaction)
+        Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
         Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
         Dim keyNameAttr As ColumnNameAttribute = keyProp.GetCustomAttribute(Of ColumnNameAttribute)
         Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
-        Dim sql As New StringBuilder($"update [{type.Name}] set ")
+        Dim sql As New StringBuilder($"update [{If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name)}] set ")
         Dim cmd As New SqlCommand() With {.Connection = _conn, .Transaction = transaction}
         For Each prop As PropertyInfo In props
             Dim nameAttr As ColumnNameAttribute = prop.GetCustomAttribute(Of ColumnNameAttribute)
@@ -181,8 +183,9 @@ Public Class DataContext
     End Sub
 
     Public Sub Delete(obj As Object, type As Type, transaction As SqlTransaction)
+        Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
         Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
-        Dim cmd As New SqlCommand($"delete from [{type.Name}] where [{keyProp.Name}]=@{keyProp.Name}", _conn, transaction)
+        Dim cmd As New SqlCommand($"delete from [{If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name)}] where [{keyProp.Name}]=@{keyProp.Name}", _conn, transaction)
         Dim param As SqlParameter = cmd.CreateParameter
         With param
             .ParameterName = $"@{keyProp.Name}"

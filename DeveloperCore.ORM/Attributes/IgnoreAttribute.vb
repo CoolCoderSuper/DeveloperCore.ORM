@@ -1,8 +1,9 @@
-﻿Namespace Columns
+﻿Namespace Attributes
 
     <AttributeUsage(AttributeTargets.Property)>
-    Public Class KeyAttribute
+    Public Class IgnoreAttribute
         Inherits Attribute
+
     End Class
 
 End Namespace

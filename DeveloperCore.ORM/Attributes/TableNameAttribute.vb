@@ -1,7 +1,7 @@
-﻿Namespace Columns
+﻿Namespace Attributes
 
-    <AttributeUsage(AttributeTargets.Property)>
-    Public Class ColumnNameAttribute
+    <AttributeUsage(AttributeTargets.Class)>
+    Public Class TableNameAttribute
         Inherits Attribute
 
         Public ReadOnly Property Name As String
