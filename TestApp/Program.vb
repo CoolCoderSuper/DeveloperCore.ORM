@@ -1,3 +1,4 @@
+Imports System.ComponentModel
 Imports DeveloperCore.ORM
 Imports DeveloperCore.ORM.Attributes
 
@@ -7,6 +8,7 @@ Module Program
         Dim dc As New DataContext("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True") With {.EnableChangeTracking = True}
         Dim res As List(Of Person) = dc.Fetch(Of Person)("select * from [User]").ToList
         Dim assigments As List(Of Assignment) = res.First.Assignments.ToList
+        dc.SubmitChanges()
         'Dim objUser As New Person() With {.FullName = "Sup"}
         'dc.Insert(objUser)
         'dc.Delete(res.Last)
@@ -21,6 +23,9 @@ End Module
 
 <TableName("User")>
 Public Class Person
+    Implements INotifyPropertyChanged
+
+    Private _FullName As String
 
     <Identity>
     <Key>
@@ -28,16 +33,29 @@ Public Class Person
 
     <ColumnName("Name")>
     Public Property FullName As String
+        Get
+            Return _FullName
+        End Get
+        Set
+            _FullName = Value
+            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(FullName)))
+        End Set
+    End Property
 
     Public Property Assignments As IEnumerable(Of Assignment)
 
     <Ignore>
     Public Property Test As String
 
+    Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
 End Class
 
 <ForeignKey("UserId")>
 Public Class Assignment
+    Implements INotifyPropertyChanged
+
+    Private _Name As String
+    Private _UserId As Integer
 
     <Identity>
     <Key>
@@ -45,7 +63,24 @@ Public Class Assignment
     Public Property Id As Integer
 
     Public Property Name As String
+        Get
+            Return _Name
+        End Get
+        Set
+            _Name = Value
+            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(Name)))
+        End Set
+    End Property
 
     Public Property UserId As Integer
+        Get
+            Return _UserId
+        End Get
+        Set
+            _UserId = Value
+            RaiseEvent PropertyChanged(Me, New PropertyChangedEventArgs(NameOf(UserId)))
+        End Set
+    End Property
 
+    Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
 End Class

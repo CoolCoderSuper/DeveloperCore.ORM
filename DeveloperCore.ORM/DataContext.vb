@@ -1,3 +1,4 @@
+Imports System.ComponentModel
 Imports System.Data
 Imports System.Linq.Expressions
 Imports System.Reflection
@@ -6,7 +7,6 @@ Imports DeveloperCore.ORM.Attributes
 Imports Microsoft.Data.SqlClient
 
 'TODO: Switch to data readers
-'TODO: Switch change tracking to use INotifyPropertyChanged
 Public Class DataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
@@ -26,6 +26,7 @@ Public Class DataContext
 
     Public Function Fetch(sql As String, type As Type, ParamArray params As Object()) As IEnumerable(Of Object)
         Try
+            If EnableChangeTracking AndAlso type.GetInterface(GetType(INotifyPropertyChanged).FullName) Is Nothing Then Throw New Exception("Change tracking is enabled, but the type does not implement INotifyPropertyChanged")
             _conn.Open()
             Dim results As New List(Of Object)
             Dim cmd As New SqlCommand(sql, _conn)
@@ -52,7 +53,10 @@ Public Class DataContext
                     Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(fkProp.PropertyType.GetGenericArguments), Me, keyValue)
                     fkProp.SetValue(obj, fk)
                 Next
-                If EnableChangeTracking Then _changeSet.Updates.Add(obj)
+                If EnableChangeTracking Then
+                    Dim notify As INotifyPropertyChanged = obj
+                    AddHandler notify.PropertyChanged, AddressOf OnPropertyChanged
+                End If
                 results.Add(obj)
             Next
             Return results
@@ -61,6 +65,10 @@ Public Class DataContext
         End Try
         Return New List(Of Object)
     End Function
+
+    Private Sub OnPropertyChanged(sender As Object, e As PropertyChangedEventArgs)
+        _changeSet.Updates.Add(sender)
+    End Sub
 
     Private Shared Function GetProp(type As Type, dc As String) As PropertyInfo
         Dim resProp As PropertyInfo
