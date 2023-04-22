@@ -9,7 +9,7 @@ Imports Microsoft.Data.SqlClient
 Public Class DataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
-    ReadOnly _delegateCache As New Dictionary(Of String, Dictionary(Of String, Action(Of Object, Object)))
+    ReadOnly _propDelegateCache As New Dictionary(Of String, Dictionary(Of String, Action(Of Object, Object)))
     Public ReadOnly Property ConnectionString As String
     Public Property EnableChangeTracking As Boolean = False
 
@@ -39,16 +39,15 @@ Public Class DataContext
                 cmd.Parameters.Add(param)
             Next
             Dim sdr As SqlDataReader = cmd.ExecuteReader
-            'TODO: Maybe cache metadata
             Dim props As New Dictionary(Of String, PropertyInfo)
             Dim allProps As PropertyInfo() = type.GetProperties
             Dim keyProp As PropertyInfo = allProps.FirstOrDefault(Function(x) x.CustomAttributes.Any(Function(y) y.AttributeType.FullName = "DeveloperCore.ORM.Attributes.KeyAttribute"))
             Dim fkProps As PropertyInfo() = allProps.Where(Function(x) x.PropertyType.FullName.StartsWith("System.Collections.Generic.IEnumerable")).ToArray
-            Dim delegates As Dictionary(Of String, Action(Of Object, Object))
-            If _delegateCache.ContainsKey(type.FullName) Then
-                delegates = _delegateCache(type.FullName)
+            Dim propDelegates As Dictionary(Of String, Action(Of Object, Object))
+            If _propDelegateCache.ContainsKey(type.FullName) Then
+                propDelegates = _propDelegateCache(type.FullName)
             Else
-                delegates = New Dictionary(Of String, Action(Of Object, Object))
+                propDelegates = New Dictionary(Of String, Action(Of Object, Object))
                 For Each prop As PropertyInfo In allProps
                     Dim method As New DynamicMethod($"SetValue{prop.Name}", Nothing, {GetType(Object), GetType(Object)})
                     Dim il As ILGenerator = method.GetILGenerator
@@ -63,13 +62,12 @@ Public Class DataContext
                     il.Emit(OpCodes.Callvirt, prop.GetSetMethod)
                     il.Emit(OpCodes.Ret)
                     Dim del As Action(Of Object, Object) = method.CreateDelegate(GetType(Action(Of Object, Object)))
-                    delegates.Add(prop.Name, del)
+                    propDelegates.Add(prop.Name, del)
                 Next
-                _delegateCache.Add(type.FullName, delegates)
+                _propDelegateCache.Add(type.FullName, propDelegates)
             End If
             While sdr.Read
                 Dim record As IDataRecord = sdr
-                'TODO: Use emit to create object
                 Dim obj As Object = Activator.CreateInstance(type)
                 Dim keyValue As String = Nothing
                 For i As Integer = 0 To record.FieldCount - 1
@@ -82,12 +80,12 @@ Public Class DataContext
                         props.Add(name, prop)
                     End If
                     If prop = keyProp Then keyValue = record(i)
-                    delegates(prop.Name)(obj, record(i))
+                    propDelegates(prop.Name)(obj, record(i))
                 Next
                 For Each fkProp As PropertyInfo In fkProps
                     'TODO: Optimize
                     Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(fkProp.PropertyType.GetGenericArguments), Me, keyValue)
-                    delegates(fkProp.Name)(obj, fk)
+                    propDelegates(fkProp.Name)(obj, fk)
                 Next
                 If EnableChangeTracking Then
                     Dim notify As INotifyPropertyChanged = obj

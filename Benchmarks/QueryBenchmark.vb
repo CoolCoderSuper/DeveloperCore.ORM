@@ -1,9 +1,13 @@
 ﻿Imports BenchmarkDotNet.Attributes
+Imports BenchmarkDotNet.Jobs
 Imports DeveloperCore.ORM
 Imports Microsoft.Data.SqlClient
 Imports NPoco
 
 <MemoryDiagnoser>
+<SimpleJob(RuntimeMoniker.Net48)>
+<SimpleJob(RuntimeMoniker.Net70)>
+<SimpleJob(RuntimeMoniker.Net80)>
 Public Class QueryBenchmark
 
     Dim _dc As DataContext
