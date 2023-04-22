@@ -38,16 +38,27 @@ Public Class DataContext
                 cmd.Parameters.Add(param)
             Next
             Dim sdr As SqlDataReader = cmd.ExecuteReader
+            Dim props As New Dictionary(Of String, PropertyInfo)
+            Dim allProps As PropertyInfo() = type.GetProperties
+            Dim keyProp As PropertyInfo = allProps.FirstOrDefault(Function(x) x.CustomAttributes.Any(Function(y) y.AttributeType.FullName = "DeveloperCore.ORM.Attributes.KeyAttribute"))
+            Dim fkProps As PropertyInfo() = allProps.Where(Function(x) x.PropertyType.FullName.StartsWith("System.Collections.Generic.IEnumerable")).ToArray
             While sdr.Read
                 Dim record As IDataRecord = sdr
                 Dim obj As Object = Activator.CreateInstance(type)
                 Dim keyValue As String = Nothing
                 For i As Integer = 0 To record.FieldCount - 1
-                    Dim prop As PropertyInfo = GetProp(type, record.GetName(i))
-                    If prop.GetCustomAttribute(Of KeyAttribute) IsNot Nothing Then keyValue = record(i)
+                    Dim name As String = record.GetName(i)
+                    Dim prop As PropertyInfo = Nothing
+                    If props.ContainsKey(name) Then
+                        prop = props(name)
+                    Else
+                        prop = GetProp(allProps, name)
+                        props.Add(name, prop)
+                    End If
+                    If prop = keyProp Then keyValue = record(i)
                     prop?.SetValue(obj, record(i))
                 Next
-                For Each fkProp As PropertyInfo In type.GetProperties.Where(Function(x) x.PropertyType.FullName.StartsWith("System.Collections.Generic.IEnumerable"))
+                For Each fkProp As PropertyInfo In fkProps
                     Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(fkProp.PropertyType.GetGenericArguments), Me, keyValue)
                     fkProp.SetValue(obj, fk)
                 Next
@@ -68,16 +79,16 @@ Public Class DataContext
         _changeSet.Updates.Add(sender)
     End Sub
 
-    Private Shared Function GetProp(type As Type, dc As String) As PropertyInfo
+    Private Shared Function GetProp(props As PropertyInfo(), dc As String) As PropertyInfo
         Dim resProp As PropertyInfo
-        For Each prop As PropertyInfo In type.GetProperties
-            Dim attr As ColumnNameAttribute = prop.GetCustomAttribute(Of ColumnNameAttribute)
-            If attr IsNot Nothing AndAlso attr.Name = dc Then
+        For Each prop As PropertyInfo In props
+            Dim attr As CustomAttributeData = prop.CustomAttributes.FirstOrDefault(Function(x) x.AttributeType.FullName = "DeveloperCore.ORM.Attributes.ColumnNameAttribute")
+            If attr IsNot Nothing AndAlso attr.ConstructorArguments(0).Value.ToString = dc Then
                 resProp = prop
             End If
         Next
-        resProp = If(resProp, type.GetProperty(dc))
-        Dim ignoreAttr As IgnoreAttribute = resProp.GetCustomAttribute(Of IgnoreAttribute)
+        resProp = If(resProp, props.FirstOrDefault(Function(x) x.Name = dc))
+        Dim ignoreAttr As CustomAttributeData = resProp.CustomAttributes.FirstOrDefault(Function(x) x.AttributeType.FullName = "DeveloperCore.ORM.Attributes.IgnoreAttribute")
         Return If(ignoreAttr Is Nothing, resProp, Nothing)
     End Function
 
