@@ -6,7 +6,6 @@ Imports System.Text
 Imports DeveloperCore.ORM.Attributes
 Imports Microsoft.Data.SqlClient
 
-'TODO: Switch to data readers
 Public Class DataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
@@ -38,16 +37,15 @@ Public Class DataContext
                 End With
                 cmd.Parameters.Add(param)
             Next
-            Dim adp As New SqlDataAdapter(cmd)
-            Dim dt As New DataTable
-            adp.Fill(dt)
-            For Each dr As DataRow In dt.Rows
+            Dim sdr As SqlDataReader = cmd.ExecuteReader
+            While sdr.Read
+                Dim record As IDataRecord = sdr
                 Dim obj As Object = Activator.CreateInstance(type)
                 Dim keyValue As String = Nothing
-                For Each dc As DataColumn In dt.Columns
-                    Dim prop As PropertyInfo = GetProp(type, dc.ColumnName)
-                    If prop.GetCustomAttribute(Of KeyAttribute) IsNot Nothing Then keyValue = dr(dc.ColumnName)
-                    prop?.SetValue(obj, dr(dc.ColumnName))
+                For i As Integer = 0 To record.FieldCount - 1
+                    Dim prop As PropertyInfo = GetProp(type, record.GetName(i))
+                    If prop.GetCustomAttribute(Of KeyAttribute) IsNot Nothing Then keyValue = record(i)
+                    prop?.SetValue(obj, record(i))
                 Next
                 For Each fkProp As PropertyInfo In type.GetProperties.Where(Function(x) x.PropertyType.FullName.StartsWith("System.Collections.Generic.IEnumerable"))
                     Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(fkProp.PropertyType.GetGenericArguments), Me, keyValue)
@@ -58,7 +56,7 @@ Public Class DataContext
                     AddHandler notify.PropertyChanged, AddressOf OnPropertyChanged
                 End If
                 results.Add(obj)
-            Next
+            End While
             Return results
         Finally
             _conn.Close()

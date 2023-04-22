@@ -16,8 +16,8 @@ Public Class ForeignKeyEnumerable(Of T)
         Dim tableType As Type = GetType(T)
         Dim tableNameAttr As TableNameAttribute = tableType.GetCustomAttribute(Of TableNameAttribute)
         Dim fkAttr As ForeignKeyAttribute = tableType.GetCustomAttribute(Of ForeignKeyAttribute)
-        Dim sql As String = $"select * from [{If(tableNameAttr Is Nothing, tableType.Name, tableNameAttr.Name)}] where [{fkAttr.Column}] = '{_value}'"
-        Return _dc.Fetch(Of T)(sql).GetEnumerator
+        Dim sql As String = $"select * from [{If(tableNameAttr Is Nothing, tableType.Name, tableNameAttr.Name)}] where [{fkAttr.Column}] = @Item1"
+        Return _dc.Fetch(Of T)(sql, _value).GetEnumerator
     End Function
 
     Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator

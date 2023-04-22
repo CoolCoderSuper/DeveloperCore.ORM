@@ -7,7 +7,7 @@ Module Program
     Sub Main()
         Dim dc As New DataContext("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True") With {.EnableChangeTracking = True}
         Dim res As List(Of Person) = dc.Fetch(Of Person)("select * from [User]").ToList
-        Dim assigments As List(Of Assignment) = res.First.Assignments.ToList
+        Dim assignments As List(Of Assignment) = res.First.Assignments.ToList
         dc.SubmitChanges()
         'Dim objUser As New Person() With {.FullName = "Sup"}
         'dc.Insert(objUser)
