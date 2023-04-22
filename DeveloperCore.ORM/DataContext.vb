@@ -5,6 +5,8 @@ Imports System.Text
 Imports DeveloperCore.ORM.Attributes
 Imports Microsoft.Data.SqlClient
 
+'TODO: Switch to data readers
+'TODO: Switch change tracking to use INotifyPropertyChanged
 Public Class DataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
@@ -22,7 +24,7 @@ Public Class DataContext
         _conn = New SqlConnection(connectionString)
     End Sub
 
-    Public Function Fetch(sql As String, type As Type, ParamArray params As Object()) As List(Of Object)
+    Public Function Fetch(sql As String, type As Type, ParamArray params As Object()) As IEnumerable(Of Object)
         Try
             _conn.Open()
             Dim results As New List(Of Object)
@@ -40,9 +42,15 @@ Public Class DataContext
             adp.Fill(dt)
             For Each dr As DataRow In dt.Rows
                 Dim obj As Object = Activator.CreateInstance(type)
+                Dim keyValue As String = Nothing
                 For Each dc As DataColumn In dt.Columns
                     Dim prop As PropertyInfo = GetProp(type, dc.ColumnName)
+                    If prop.GetCustomAttribute(Of KeyAttribute) IsNot Nothing Then keyValue = dr(dc.ColumnName)
                     prop?.SetValue(obj, dr(dc.ColumnName))
+                Next
+                For Each fkProp As PropertyInfo In type.GetProperties.Where(Function(x) x.PropertyType.FullName.StartsWith("System.Collections.Generic.IEnumerable"))
+                    Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(fkProp.PropertyType.GetGenericArguments), Me, keyValue)
+                    fkProp.SetValue(obj, fk)
                 Next
                 If EnableChangeTracking Then _changeSet.Updates.Add(obj)
                 results.Add(obj)
@@ -67,7 +75,7 @@ Public Class DataContext
         Return If(ignoreAttr Is Nothing, resProp, Nothing)
     End Function
 
-    Public Function Fetch(Of T)(sql As String, ParamArray params As Object()) As List(Of T)
+    Public Function Fetch(Of T)(sql As String, ParamArray params As Object()) As IEnumerable(Of T)
         Return Fetch(sql, GetType(T), params).Cast(Of T).ToList
     End Function
 
@@ -97,7 +105,7 @@ Public Class DataContext
         Dim cmd As New SqlCommand() With {.Connection = _conn, .Transaction = transaction}
         For Each prop As PropertyInfo In props
             sql.Append($"@{prop.Name}{If(prop Is props.Last, ")", ",")}")
-        Dim param As SqlParameter = cmd.CreateParameter
+            Dim param As SqlParameter = cmd.CreateParameter
             With param
                 .ParameterName = $"@{prop.Name}"
                 .Value = prop.GetValue(obj)

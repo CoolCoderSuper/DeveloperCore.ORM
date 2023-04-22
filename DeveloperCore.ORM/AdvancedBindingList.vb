@@ -1,5 +1,6 @@
 ﻿Imports System.ComponentModel
 
+'TODO: test
 Public Class AdvancedBindingList(Of T)
     Inherits BindingList(Of T)
 
