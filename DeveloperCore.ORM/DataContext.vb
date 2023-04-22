@@ -9,6 +9,7 @@ Imports Microsoft.Data.SqlClient
 Public Class DataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
+    ReadOnly _delegateCache As New Dictionary(Of String, Dictionary(Of String, Action(Of Object, Object)))
     Public ReadOnly Property ConnectionString As String
     Public Property EnableChangeTracking As Boolean = False
 
@@ -38,29 +39,37 @@ Public Class DataContext
                 cmd.Parameters.Add(param)
             Next
             Dim sdr As SqlDataReader = cmd.ExecuteReader
+            'TODO: Maybe cache metadata
             Dim props As New Dictionary(Of String, PropertyInfo)
             Dim allProps As PropertyInfo() = type.GetProperties
             Dim keyProp As PropertyInfo = allProps.FirstOrDefault(Function(x) x.CustomAttributes.Any(Function(y) y.AttributeType.FullName = "DeveloperCore.ORM.Attributes.KeyAttribute"))
             Dim fkProps As PropertyInfo() = allProps.Where(Function(x) x.PropertyType.FullName.StartsWith("System.Collections.Generic.IEnumerable")).ToArray
-            Dim delegates As New Dictionary(Of String, Action(Of Object, Object))
-            For Each prop As PropertyInfo In allProps
-                Dim method As New DynamicMethod($"SetValue{prop.Name}", Nothing, {GetType(Object), GetType(Object)})
-                Dim il As ILGenerator = method.GetILGenerator
-                il.Emit(OpCodes.Ldarg_0)
-                il.Emit(OpCodes.Castclass, type)
-                il.Emit(OpCodes.Ldarg_1)
-                If prop.PropertyType.IsValueType Then
-                    il.Emit(OpCodes.Unbox_Any, prop.PropertyType)
-                Else
-                    il.Emit(OpCodes.Castclass, prop.PropertyType)
-                End If
-                il.Emit(OpCodes.Callvirt, prop.GetSetMethod)
-                il.Emit(OpCodes.Ret)
-                Dim del As Action(Of Object, Object) = method.CreateDelegate(GetType(Action(Of Object, Object)))
-                delegates.Add(prop.Name, del)
-            Next
+            Dim delegates As Dictionary(Of String, Action(Of Object, Object))
+            If _delegateCache.ContainsKey(type.FullName) Then
+                delegates = _delegateCache(type.FullName)
+            Else
+                delegates = New Dictionary(Of String, Action(Of Object, Object))
+                For Each prop As PropertyInfo In allProps
+                    Dim method As New DynamicMethod($"SetValue{prop.Name}", Nothing, {GetType(Object), GetType(Object)})
+                    Dim il As ILGenerator = method.GetILGenerator
+                    il.Emit(OpCodes.Ldarg_0)
+                    il.Emit(OpCodes.Castclass, type)
+                    il.Emit(OpCodes.Ldarg_1)
+                    If prop.PropertyType.IsValueType Then
+                        il.Emit(OpCodes.Unbox_Any, prop.PropertyType)
+                    Else
+                        il.Emit(OpCodes.Castclass, prop.PropertyType)
+                    End If
+                    il.Emit(OpCodes.Callvirt, prop.GetSetMethod)
+                    il.Emit(OpCodes.Ret)
+                    Dim del As Action(Of Object, Object) = method.CreateDelegate(GetType(Action(Of Object, Object)))
+                    delegates.Add(prop.Name, del)
+                Next
+                _delegateCache.Add(type.FullName, delegates)
+            End If
             While sdr.Read
                 Dim record As IDataRecord = sdr
+                'TODO: Use emit to create object
                 Dim obj As Object = Activator.CreateInstance(type)
                 Dim keyValue As String = Nothing
                 For i As Integer = 0 To record.FieldCount - 1
