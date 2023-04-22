@@ -1,7 +1,7 @@
 Imports System.ComponentModel
 Imports System.Data
-Imports System.Linq.Expressions
 Imports System.Reflection
+Imports System.Reflection.Emit
 Imports System.Text
 Imports DeveloperCore.ORM.Attributes
 Imports Microsoft.Data.SqlClient
@@ -42,6 +42,23 @@ Public Class DataContext
             Dim allProps As PropertyInfo() = type.GetProperties
             Dim keyProp As PropertyInfo = allProps.FirstOrDefault(Function(x) x.CustomAttributes.Any(Function(y) y.AttributeType.FullName = "DeveloperCore.ORM.Attributes.KeyAttribute"))
             Dim fkProps As PropertyInfo() = allProps.Where(Function(x) x.PropertyType.FullName.StartsWith("System.Collections.Generic.IEnumerable")).ToArray
+            Dim delegates As New Dictionary(Of String, Action(Of Object, Object))
+            For Each prop As PropertyInfo In allProps
+                Dim method As New DynamicMethod($"SetValue{prop.Name}", Nothing, {GetType(Object), GetType(Object)})
+                Dim il As ILGenerator = method.GetILGenerator
+                il.Emit(OpCodes.Ldarg_0)
+                il.Emit(OpCodes.Castclass, type)
+                il.Emit(OpCodes.Ldarg_1)
+                If prop.PropertyType.IsValueType Then
+                    il.Emit(OpCodes.Unbox_Any, prop.PropertyType)
+                Else
+                    il.Emit(OpCodes.Castclass, prop.PropertyType)
+                End If
+                il.Emit(OpCodes.Callvirt, prop.GetSetMethod)
+                il.Emit(OpCodes.Ret)
+                Dim del As Action(Of Object, Object) = method.CreateDelegate(GetType(Action(Of Object, Object)))
+                delegates.Add(prop.Name, del)
+            Next
             While sdr.Read
                 Dim record As IDataRecord = sdr
                 Dim obj As Object = Activator.CreateInstance(type)
@@ -56,11 +73,12 @@ Public Class DataContext
                         props.Add(name, prop)
                     End If
                     If prop = keyProp Then keyValue = record(i)
-                    prop?.SetValue(obj, record(i))
+                    delegates(prop.Name)(obj, record(i))
                 Next
                 For Each fkProp As PropertyInfo In fkProps
+                    'TODO: Optimize
                     Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(fkProp.PropertyType.GetGenericArguments), Me, keyValue)
-                    fkProp.SetValue(obj, fk)
+                    delegates(fkProp.Name)(obj, fk)
                 Next
                 If EnableChangeTracking Then
                     Dim notify As INotifyPropertyChanged = obj
@@ -263,11 +281,5 @@ Public Class DataContext
             _conn.Close()
         End Try
     End Sub
-
-    Public Function Query(Of T)(exp As Expression(Of Func(Of T, Boolean))) As List(Of T)
-        While exp.CanReduce
-            exp = exp.Reduce
-        End While
-    End Function
 
 End Class
