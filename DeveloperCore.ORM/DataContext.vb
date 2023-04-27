@@ -66,6 +66,7 @@ Public Class DataContext
                 Next
                 _propDelegateCache.Add(type.FullName, propDelegates)
             End If
+            Dim nameCache As New Dictionary(Of Integer, String)
             While sdr.Read
                 Dim record As IDataRecord = sdr
                 Dim obj As Object = Activator.CreateInstance(type)

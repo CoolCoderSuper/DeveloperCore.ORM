@@ -1,6 +1,8 @@
-﻿Imports DeveloperCore.ORM.Attributes
+﻿Imports DeveloperCore.ORM
+Imports DeveloperCore.ORM.Attributes
 
 <TableName("OtherUser")>
+<GeneratedQuery>
 Public Class ORMUser
     <Identity>
     Public Property Id As Integer

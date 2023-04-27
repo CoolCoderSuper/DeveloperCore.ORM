@@ -4,10 +4,10 @@ Imports DeveloperCore.ORM
 Imports Microsoft.Data.SqlClient
 Imports NPoco
 
-<MemoryDiagnoser>
-<SimpleJob(RuntimeMoniker.Net48)>
+'<SimpleJob(RuntimeMoniker.Net48)>
+'<SimpleJob(RuntimeMoniker.Net80)>
 <SimpleJob(RuntimeMoniker.Net70)>
-<SimpleJob(RuntimeMoniker.Net80)>
+<MemoryDiagnoser>
 Public Class QueryBenchmark
 
     Dim _dc As DataContext
@@ -33,5 +33,10 @@ Public Class QueryBenchmark
         Dim sql = "SELECT * FROM OtherUser"
         Dim result = _db.Fetch(Of ORMUser)(sql)
         conn.Close()
+    End Sub
+
+    <Benchmark>
+    Public Sub QuerySourceGenerated()
+        ORMUser.Fetch("SELECT * FROM OtherUser", "Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True")
     End Sub
 End Class

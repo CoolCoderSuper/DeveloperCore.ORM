@@ -3,12 +3,14 @@ Imports DeveloperCore.ORM
 Imports DeveloperCore.ORM.Attributes
 
 Module Program
+    Private Const ConnectionString As String = "Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True"
 
     Sub Main()
-        Dim dc As New DataContext("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True") With {.EnableChangeTracking = True}
+        Dim dc As New DataContext(ConnectionString) With {.EnableChangeTracking = True}
         Dim res As List(Of Person) = dc.Fetch(Of Person)("select * from [User]").ToList
         Dim assignments As List(Of Assignment) = res.First.Assignments.ToList
         dc.SubmitChanges()
+        Dim sRes As List(Of Person) = Person.Fetch("select * from [User]", ConnectionString)
         'Dim objUser As New Person() With {.FullName = "Sup"}
         'dc.Insert(objUser)
         'dc.Delete(res.Last)
@@ -22,6 +24,7 @@ Module Program
 End Module
 
 <TableName("User")>
+<GeneratedQuery>
 Public Class Person
     Implements INotifyPropertyChanged
 
@@ -51,6 +54,7 @@ Public Class Person
 End Class
 
 <ForeignKey("UserId")>
+<GeneratedQuery>
 Public Class Assignment
     Implements INotifyPropertyChanged
 

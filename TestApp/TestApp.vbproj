@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DeveloperCore.ORM\DeveloperCore.ORM.vbproj" />
+	  <Analyzer Include="C:\CodingCool\Code\Projects\DeveloperCore.ORM\ORMGenerator\bin\Debug\netstandard2.0\ORMGenerator.dll"/>
   </ItemGroup>
 
 </Project>
