@@ -4,8 +4,6 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-'TODO: Foreign key support
-'TODO: Change tracking support
 <Generator(LanguageNames.VisualBasic)>
 Public Class QueryProcessorGenerator
     Implements ISourceGenerator

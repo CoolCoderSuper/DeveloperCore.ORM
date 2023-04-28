@@ -2,10 +2,10 @@
 Imports DeveloperCore.ORM.Attributes
 
 Public Class ParentRef(Of T)
-    Private ReadOnly _dc As DataContext
+    Private ReadOnly _dc As IDataContext
     Private ReadOnly _value As String
 
-    Public Sub New(dc As DataContext, value As String)
+    Public Sub New(dc As IDataContext, value As String)
         _dc = dc
         _value = value
     End Sub

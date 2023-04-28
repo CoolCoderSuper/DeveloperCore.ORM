@@ -8,14 +8,16 @@ Imports Microsoft.Data.SqlClient
 
 'TODO: FK editing like in linq2sql
 'TODO: Fetch should use delayed query like ForeignKeyEnumerable
-Public Class DataContext
+Public Class SqlDataContext
+    Implements IDataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
     ReadOnly _propDelegateCache As New Dictionary(Of String, Dictionary(Of String, Action(Of Object, Object)))
-    Public ReadOnly Property ConnectionString As String
-    Public Property EnableChangeTracking As Boolean = False
 
-    Public ReadOnly Property ChangeSet As ChangeSet
+    Public ReadOnly Property ConnectionString As String Implements IDataContext.ConnectionString
+    Public Property EnableChangeTracking As Boolean = False Implements IDataContext.EnableChangeTracking
+
+    Public ReadOnly Property ChangeSet As ChangeSet Implements IDataContext.ChangeSet
         Get
             Return _changeSet
         End Get
@@ -26,7 +28,7 @@ Public Class DataContext
         _conn = New SqlConnection(connectionString)
     End Sub
 
-    Public Function Fetch(sql As String, type As Type, ParamArray params As Object()) As IEnumerable(Of Object)
+    Public Function Fetch(sql As String, type As Type, ParamArray params As Object()) As IEnumerable(Of Object) Implements IDataContext.Fetch
         Try
             If EnableChangeTracking AndAlso type.GetInterface(GetType(INotifyPropertyChanged).FullName) Is Nothing Then Throw New Exception("Change tracking is enabled, but the type does not implement INotifyPropertyChanged")
             _conn.Open()
@@ -131,11 +133,11 @@ Public Class DataContext
         Return If(ignoreAttr Is Nothing, resProp, Nothing)
     End Function
 
-    Public Function Fetch(Of T)(sql As String, ParamArray params As Object()) As IEnumerable(Of T)
+    Public Function Fetch(Of T)(sql As String, ParamArray params As Object()) As IEnumerable(Of T) Implements IDataContext.Fetch
         Return Fetch(sql, GetType(T), params).Cast(Of T).ToList
     End Function
 
-    Public Sub Insert(obj As Object, type As Type)
+    Public Sub Insert(obj As Object, type As Type) Implements IDataContext.Insert
         Dim transaction As SqlTransaction
         Try
             _conn.Open()
@@ -154,7 +156,7 @@ Public Class DataContext
         End Try
     End Sub
 
-    Public Sub Insert(obj As Object, type As Type, transaction As SqlTransaction)
+    Public Sub Insert(obj As Object, type As Type, transaction As SqlTransaction) Implements IDataContext.Insert
         Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
         Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
         Dim sql As New StringBuilder($"insert into [{If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name)}] values(")
@@ -172,11 +174,11 @@ Public Class DataContext
         cmd.ExecuteNonQuery()
     End Sub
 
-    Public Sub Insert(Of T)(obj As T)
+    Public Sub Insert(Of T)(obj As T) Implements IDataContext.Insert
         Insert(obj, GetType(T))
     End Sub
 
-    Public Sub Update(obj As Object, type As Type)
+    Public Sub Update(obj As Object, type As Type) Implements IDataContext.Update
         Dim transaction As SqlTransaction
         Try
             _conn.Open()
@@ -195,7 +197,7 @@ Public Class DataContext
         End Try
     End Sub
 
-    Public Sub Update(obj As Object, type As Type, transaction As SqlTransaction)
+    Public Sub Update(obj As Object, type As Type, transaction As SqlTransaction) Implements IDataContext.Update
         Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
         Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
         Dim keyNameAttr As ColumnNameAttribute = keyProp.GetCustomAttribute(Of ColumnNameAttribute)
@@ -223,11 +225,11 @@ Public Class DataContext
         cmd.ExecuteNonQuery()
     End Sub
 
-    Public Sub Update(Of T)(obj As T)
+    Public Sub Update(Of T)(obj As T) Implements IDataContext.Update
         Update(obj, GetType(T))
     End Sub
 
-    Public Sub Delete(obj As Object, type As Type)
+    Public Sub Delete(obj As Object, type As Type) Implements IDataContext.Delete
         Dim transaction As SqlTransaction
         Try
             _conn.Open()
@@ -246,7 +248,7 @@ Public Class DataContext
         End Try
     End Sub
 
-    Public Sub Delete(obj As Object, type As Type, transaction As SqlTransaction)
+    Public Sub Delete(obj As Object, type As Type, transaction As SqlTransaction) Implements IDataContext.Delete
         Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
         Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
         Dim cmd As New SqlCommand($"delete from [{If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name)}] where [{keyProp.Name}]=@{keyProp.Name}", _conn, transaction)
@@ -259,23 +261,23 @@ Public Class DataContext
         cmd.ExecuteNonQuery()
     End Sub
 
-    Public Sub Delete(Of T)(obj As T)
+    Public Sub Delete(Of T)(obj As T) Implements IDataContext.Delete
         Delete(obj, GetType(T))
     End Sub
 
-    Public Sub InsertOnSubmit(obj As Object)
+    Public Sub InsertOnSubmit(obj As Object) Implements IDataContext.InsertOnSubmit
         _changeSet.Inserts.Add(obj)
     End Sub
 
-    Public Sub UpdateOnSubmit(obj As Object)
+    Public Sub UpdateOnSubmit(obj As Object) Implements IDataContext.UpdateOnSubmit
         _changeSet.Updates.Add(obj)
     End Sub
 
-    Public Sub DeleteOnSubmit(obj As Object)
+    Public Sub DeleteOnSubmit(obj As Object) Implements IDataContext.DeleteOnSubmit
         _changeSet.Deletes.Add(obj)
     End Sub
 
-    Public Sub SubmitChanges()
+    Public Sub SubmitChanges() Implements IDataContext.SubmitChanges
         Dim transaction As SqlTransaction
         Try
             _conn.Open()

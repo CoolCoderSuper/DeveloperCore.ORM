@@ -10,13 +10,13 @@ Imports NPoco
 <MemoryDiagnoser>
 Public Class QueryBenchmark
 
-    Dim _dc As DataContext
+    Dim _dc As SqlDataContext
     Dim _db As Database
     Dim conn As SqlConnection
 
     <GlobalSetup>
     Public Sub Setup()
-        _dc = New DataContext("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True")
+        _dc = New SqlDataContext("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True")
         conn = New SqlConnection("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True")
         _db = New Database(conn)
     End Sub
