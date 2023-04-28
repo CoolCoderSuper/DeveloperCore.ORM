@@ -6,7 +6,8 @@ Imports System.Text
 Imports DeveloperCore.ORM.Attributes
 Imports Microsoft.Data.SqlClient
 
-'TODO: Add parent property for FKs
+'TODO: FK editing like in linq2sql
+'TODO: Fetch should use delayed query like ForeignKeyEnumerable
 Public Class DataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
@@ -85,11 +86,19 @@ Public Class DataContext
                     propDelegates(prop.Name)(obj, record(i))
                 Next
                 For Each fkProp As PropertyInfo In fkProps
-                    'TODO: Optimize
-                    Dim args As Type() = fkProp.PropertyType.GetGenericArguments
+                    Dim args As Type() = fkProp.PropertyType.GenericTypeArguments
                     If args(0).CustomAttributes.Any(Function(x) x.AttributeType.FullName = "DeveloperCore.ORM.Attributes.ForeignKeyAttribute") Then
+                        'TODO: Optimize
                         Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(args), Me, keyValue)
                         propDelegates(fkProp.Name)(obj, fk)
+                    End If
+                Next
+                'TODO: Optimize
+                For Each pProp As PropertyInfo In allProps.Where(Function(x) x.PropertyType.FullName.StartsWith("DeveloperCore.ORM.ParentRef`1"))
+                    Dim fkAttr As ForeignKeyAttribute = type.GetCustomAttribute(Of ForeignKeyAttribute)()
+                    If fkAttr IsNot Nothing Then
+                        Dim p As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ParentRef`1").MakeGenericType(pProp.PropertyType.GenericTypeArguments), Me, record(fkAttr.Column).ToString)
+                        propDelegates(pProp.Name)(obj, p)
                     End If
                 Next
                 If EnableChangeTracking Then

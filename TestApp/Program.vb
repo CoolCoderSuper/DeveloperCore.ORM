@@ -9,6 +9,7 @@ Module Program
         Dim dc As New DataContext(ConnectionString) With {.EnableChangeTracking = True}
         Dim res As List(Of Person) = dc.Fetch(Of Person)("select * from [User]").ToList
         Dim assignments As List(Of Assignment) = res.First.Assignments.ToList
+        Dim u = assignments.First.User.Value
         dc.SubmitChanges()
         Dim sRes As List(Of Person) = Person.Fetch("select * from [User]", ConnectionString)
         'Dim objUser As New Person() With {.FullName = "Sup"}
@@ -86,7 +87,7 @@ Public Class Assignment
         End Set
     End Property
 
-    Public Property User As Person
+    Public Property User As ParentRef(Of Person)
 
     Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
 End Class
