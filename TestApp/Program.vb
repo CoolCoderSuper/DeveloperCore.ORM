@@ -86,5 +86,7 @@ Public Class Assignment
         End Set
     End Property
 
+    Public Property User As Person
+
     Public Event PropertyChanged As PropertyChangedEventHandler Implements INotifyPropertyChanged.PropertyChanged
 End Class

@@ -6,6 +6,7 @@ Imports System.Text
 Imports DeveloperCore.ORM.Attributes
 Imports Microsoft.Data.SqlClient
 
+'TODO: Add parent property for FKs
 Public Class DataContext
     ReadOnly _conn As SqlConnection
     Dim _changeSet As New ChangeSet
@@ -85,8 +86,11 @@ Public Class DataContext
                 Next
                 For Each fkProp As PropertyInfo In fkProps
                     'TODO: Optimize
-                    Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(fkProp.PropertyType.GetGenericArguments), Me, keyValue)
-                    propDelegates(fkProp.Name)(obj, fk)
+                    Dim args As Type() = fkProp.PropertyType.GetGenericArguments
+                    If args(0).CustomAttributes.Any(Function(x) x.AttributeType.FullName = "DeveloperCore.ORM.Attributes.ForeignKeyAttribute") Then
+                        Dim fk As Object = Activator.CreateInstance(Type.GetType("DeveloperCore.ORM.ForeignKeyEnumerable`1").MakeGenericType(args), Me, keyValue)
+                        propDelegates(fkProp.Name)(obj, fk)
+                    End If
                 Next
                 If EnableChangeTracking Then
                     Dim notify As INotifyPropertyChanged = obj
