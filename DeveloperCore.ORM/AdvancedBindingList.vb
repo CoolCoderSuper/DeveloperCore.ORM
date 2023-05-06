@@ -3,9 +3,9 @@
 Public Class AdvancedBindingList(Of T)
     Inherits BindingList(Of T)
 
-    Private ReadOnly _dc As IDataContext
+    Private ReadOnly _dc As DataContext
 
-    Public Sub New(l As List(Of T), dc As IDataContext)
+    Public Sub New(l As List(Of T), dc As DataContext)
         MyBase.New(l)
         _dc = dc
     End Sub

@@ -4,10 +4,10 @@ Imports System.Reflection
 Public Class ForeignKeyEnumerable(Of T)
     Implements IEnumerable(Of T)
 
-    Private ReadOnly _dc As IDataContext
+    Private ReadOnly _dc As DataContext
     Private ReadOnly _value As String
 
-    Public Sub New(dc As IDataContext, value As String)
+    Public Sub New(dc As DataContext, value As String)
         _dc = dc
         _value = value
     End Sub

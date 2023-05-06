@@ -10,7 +10,7 @@ Imports NPoco
 <MemoryDiagnoser>
 Public Class QueryBenchmark
 
-    Dim _dc As SqlDataContext
+    Dim _dc As DataContext
     Dim _db As Database
     Dim conn As SqlConnection
 

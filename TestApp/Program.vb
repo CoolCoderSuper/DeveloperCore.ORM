@@ -6,7 +6,7 @@ Module Program
     Private Const ConnectionString As String = "Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True"
 
     Sub Main()
-        Dim dc As IDataContext = New SqlDataContext(ConnectionString) With {.EnableChangeTracking = True}
+        Dim dc As DataContext = New SqlDataContext(ConnectionString) With {.EnableChangeTracking = True}
         Dim res As List(Of Person) = dc.Fetch(Of Person)("select * from [User]").ToList
         Dim assignments As List(Of Assignment) = res.First.Assignments.ToList
         Dim u = assignments.First.User.Value
