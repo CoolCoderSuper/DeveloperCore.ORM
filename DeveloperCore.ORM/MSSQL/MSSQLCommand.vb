@@ -4,24 +4,27 @@ Imports Microsoft.Data.SqlClient
 Namespace MSSQL
     Public Class MSSQLCommand
         Implements ICommand
-        Private _command As SqlCommand
         Public Property Connection As IConnection Implements ICommand.Connection
         Public Property Transaction As ITransaction Implements ICommand.Transaction
         Public ReadOnly Property Parameters As New Dictionary(Of String, Object) Implements ICommand.Parameters
         Public Property CommandText As String Implements ICommand.CommandText
         
         Public Function Execute() As Integer Implements ICommand.Execute
-            CreateCommand()
-            If Connection IsNot Nothing Then _command.Connection = Connection.Connection
-            If Transaction IsNot Nothing Then _command.Transaction = Transaction.Transaction
-            Return _command.ExecuteNonQuery()
+            Return CreateCommand().ExecuteNonQuery()
+        End Function
+        
+        Public Function Query() As SqlDataReader Implements ICommand.Query
+            Return CreateCommand().ExecuteReader()
         End Function
 
-        Private Sub CreateCommand()
-            _command = New SqlCommand(CommandText)
+        Private Function CreateCommand() As SqlCommand
+            Dim command As New SqlCommand(CommandText)
             For Each kvp As KeyValuePair(Of String, Object) In Parameters
-                _command.Parameters.AddWithValue(kvp.Key, kvp.Value)
+                command.Parameters.AddWithValue(kvp.Key, kvp.Value)
             Next
-        End Sub
+            If Connection IsNot Nothing Then command.Connection = Connection.Connection
+            If Transaction IsNot Nothing Then command.Transaction = Transaction.Transaction
+            Return command
+        End Function
     End Class
 End Namespace

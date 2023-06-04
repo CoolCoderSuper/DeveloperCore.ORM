@@ -39,5 +39,9 @@ Namespace MSSQL
         Public Function Transaction() As ITransaction Implements IConnection.Transaction
             Return New MSSQLTransaction(_conn.BeginTransaction())
         End Function
+        
+        Public Function Command() As ICommand Implements IConnection.Command
+            Return New MSSQLCommand() With {.Connection = Me}
+        End Function
     End Class
 End Namespace

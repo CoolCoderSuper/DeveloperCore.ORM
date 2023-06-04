@@ -7,5 +7,6 @@
         Function Update() As IUpdate
         Function Delete() As IDelete
         Function Transaction() As ITransaction
+        Function Command() As ICommand
     End Interface
 End Namespace

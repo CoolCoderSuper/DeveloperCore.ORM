@@ -30,16 +30,12 @@ Namespace Core
                 If EnableChangeTracking AndAlso type.GetInterface(GetType(INotifyPropertyChanged).FullName) Is Nothing Then Throw New Exception("Change tracking is enabled, but the type does not implement INotifyPropertyChanged")
                 _connection.Connect()
                 Dim results As New List(Of Object)
-                Dim cmd As New SqlCommand(sql, _connection.Connection)
+                Dim cmd As ICommand = _connection.Command()
+                cmd.CommandText = sql
                 For i As Integer = 0 To params.Length - 1
-                    Dim param As SqlParameter = cmd.CreateParameter
-                    With param
-                        .ParameterName = $"@Item{i + 1}"
-                        .Value = params(i)
-                    End With
-                    cmd.Parameters.Add(param)
+                    cmd.Parameters.Add($"@Item{i + 1}", params(i))
                 Next
-                Dim sdr As SqlDataReader = cmd.ExecuteReader
+                Dim sdr As SqlDataReader = cmd.Query()
                 Dim props As New Dictionary(Of String, PropertyInfo)
                 Dim allProps As PropertyInfo() = type.GetProperties
                 Dim keyProp As PropertyInfo = allProps.FirstOrDefault(Function(x) x.CustomAttributes.Any(Function(y) y.AttributeType.FullName = "DeveloperCore.ORM.Attributes.KeyAttribute"))
