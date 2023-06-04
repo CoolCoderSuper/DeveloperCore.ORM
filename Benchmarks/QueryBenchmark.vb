@@ -1,6 +1,8 @@
 ﻿Imports BenchmarkDotNet.Attributes
 Imports BenchmarkDotNet.Jobs
 Imports DeveloperCore.ORM
+Imports DeveloperCore.ORM.Core
+Imports DeveloperCore.ORM.MSSQL
 Imports Microsoft.Data.SqlClient
 Imports NPoco
 

@@ -1,6 +1,8 @@
 Imports System.ComponentModel
-Imports DeveloperCore.ORM
 Imports DeveloperCore.ORM.Attributes
+Imports DeveloperCore.ORM.Core
+Imports DeveloperCore.ORM.MSSQL
+Imports DeveloperCore.ORM.Relation
 
 Module Program
     Private Const ConnectionString As String = "Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True"
@@ -8,10 +10,10 @@ Module Program
     Sub Main()
         Dim dc As DataContext = New SqlDataContext(ConnectionString) With {.EnableChangeTracking = True}
         Dim res As List(Of Person) = dc.Fetch(Of Person)("select * from [User]").ToList
-        Dim assignments As List(Of Assignment) = res.First.Assignments.ToList
-        Dim u = assignments.First.User.Value
-        dc.SubmitChanges()
-        Dim sRes As List(Of Person) = Person.Fetch("select * from [User]", ConnectionString)
+        'Dim assignments As List(Of Assignment) = res.First.Assignments.ToList
+        'Dim u = assignments.First.User.Value
+        'dc.SubmitChanges()
+        'Dim sRes As List(Of Person) = Person.Fetch("select * from [User]", ConnectionString)
         'Dim objUser As New Person() With {.FullName = "Sup"}
         'dc.Insert(objUser)
         'dc.Delete(res.Last)
@@ -46,6 +48,7 @@ Public Class Person
         End Set
     End Property
 
+    <Ignore>
     Public Property Assignments As IEnumerable(Of Assignment)
 
     <Ignore>

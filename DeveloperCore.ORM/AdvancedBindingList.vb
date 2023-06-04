@@ -1,4 +1,5 @@
 ﻿Imports System.ComponentModel
+Imports DeveloperCore.ORM.Core
 
 Public Class AdvancedBindingList(Of T)
     Inherits BindingList(Of T)
