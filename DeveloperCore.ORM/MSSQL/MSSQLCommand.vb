@@ -5,7 +5,7 @@ Namespace MSSQL
     Public Class MSSQLCommand
         Implements ICommand
         Private ReadOnly _command As SqlCommand
-        Public Property Connection As IProvider Implements ICommand.Connection
+        Public Property Connection As IConnection Implements ICommand.Connection
         Public Property Transaction As ITransaction Implements ICommand.Transaction
 
         Public Sub New(command As SqlCommand)

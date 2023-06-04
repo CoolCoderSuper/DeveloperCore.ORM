@@ -12,7 +12,7 @@ Namespace Core
     Public MustInherit Class DataContext
         Dim _changeSet As New ChangeSet
         ReadOnly _propDelegateCache As New Dictionary(Of String, Dictionary(Of String, Action(Of Object, Object)))
-        ReadOnly _provider As IProvider
+        ReadOnly _connection As IConnection
         
         Public Property EnableChangeTracking As Boolean = False
 
@@ -22,16 +22,16 @@ Namespace Core
             End Get
         End Property
 
-        Public Sub New(provider As IProvider)
-            _provider = provider
+        Public Sub New(connection As IConnection)
+            _connection = connection
         End Sub
 
         Public Overridable Function Fetch(sql As String, type As Type, ParamArray params As Object()) As IEnumerable(Of Object)
             Try
                 If EnableChangeTracking AndAlso type.GetInterface(GetType(INotifyPropertyChanged).FullName) Is Nothing Then Throw New Exception("Change tracking is enabled, but the type does not implement INotifyPropertyChanged")
-                _provider.Connect()
+                _connection.Connect()
                 Dim results As New List(Of Object)
-                Dim cmd As New SqlCommand(sql, _provider.Connection)
+                Dim cmd As New SqlCommand(sql, _connection.Connection)
                 For i As Integer = 0 To params.Length - 1
                     Dim param As SqlParameter = cmd.CreateParameter
                     With param
@@ -108,7 +108,7 @@ Namespace Core
                 End While
                 Return results
             Finally
-                _provider.Disconnect()
+                _connection.Disconnect()
             End Try
         End Function
 
@@ -136,8 +136,8 @@ Namespace Core
         Public Overridable Sub Insert(obj As Object, type As Type)
             Dim transaction As ITransaction
             Try
-                _provider.Connect()
-                transaction = _provider.Transaction()
+                _connection.Connect()
+                transaction = _connection.Transaction()
                 Insert(obj, type, transaction)
                 transaction.Commit()
             Catch ex As Exception
@@ -148,20 +148,20 @@ Namespace Core
                 End Try
                 Throw
             Finally
-                _provider.Disconnect()
+                _connection.Disconnect()
             End Try
         End Sub
 
         Public Overridable Sub Insert(obj As Object, type As Type, transaction As ITransaction)
             Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
             Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
-            Dim insert As IInsert = _provider.Insert()
+            Dim insert As IInsert = _connection.Insert()
             insert.Table(If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name))
             For Each prop As PropertyInfo In props
                 insert.Set(prop.GetValue(obj))
             Next
             With insert.GetCommand()
-                .Connection = _provider
+                .Connection = _connection
                 .Transaction = transaction
                 .Execute()
             End With
@@ -174,8 +174,8 @@ Namespace Core
         Public Overridable Sub Update(obj As Object, type As Type)
             Dim transaction As ITransaction
             Try
-                _provider.Connect()
-                transaction = _provider.Transaction()
+                _connection.Connect()
+                transaction = _connection.Transaction()
                 Update(obj, type, transaction)
                 transaction.Commit()
             Catch ex As Exception
@@ -186,7 +186,7 @@ Namespace Core
                 End Try
                 Throw
             Finally
-                _provider.Disconnect()
+                _connection.Disconnect()
             End Try
         End Sub
 
@@ -195,7 +195,7 @@ Namespace Core
             Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
             Dim keyNameAttr As ColumnNameAttribute = keyProp.GetCustomAttribute(Of ColumnNameAttribute)
             Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
-            Dim update As IUpdate = _provider.Update()
+            Dim update As IUpdate = _connection.Update()
             update.Table(If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name))
             For Each prop As PropertyInfo In props
                 Dim nameAttr As ColumnNameAttribute = prop.GetCustomAttribute(Of ColumnNameAttribute)
@@ -203,7 +203,7 @@ Namespace Core
             Next
             update.Filter(If(keyNameAttr Is Nothing, keyProp.Name, keyNameAttr.Name), keyProp.GetValue(obj))
             With update.GetCommand()
-                .Connection = _provider
+                .Connection = _connection
                 .Transaction = transaction
                 .Execute()
             End With
@@ -216,8 +216,8 @@ Namespace Core
         Public Overridable Sub Delete(obj As Object, type As Type)
             Dim transaction As ITransaction
             Try
-                _provider.Connect()
-                transaction = _provider.Transaction()
+                _connection.Connect()
+                transaction = _connection.Transaction()
                 Delete(obj, type, transaction)
                 transaction.Commit()
             Catch ex As Exception
@@ -228,17 +228,17 @@ Namespace Core
                 End Try
                 Throw
             Finally
-                _provider.Disconnect()
+                _connection.Disconnect()
             End Try
         End Sub
 
         Public Overridable Sub Delete(obj As Object, type As Type, transaction As ITransaction)
             Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
             Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
-            Dim delete As IDelete = _provider.Delete()
+            Dim delete As IDelete = _connection.Delete()
             delete.Table(If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name)).Filter(keyProp.Name, keyProp.GetValue(obj))
             With delete.GetCommand()
-                .Connection = _provider
+                .Connection = _connection
                 .Transaction = transaction
                 .Execute()
             End With
@@ -263,8 +263,8 @@ Namespace Core
         Public Sub SubmitChanges()
             Dim transaction As ITransaction
             Try
-                _provider.Connect()
-                transaction = _provider.Transaction()
+                _connection.Connect()
+                transaction = _connection.Transaction()
                 For Each insertObj As Object In _changeSet.Inserts
                     Insert(insertObj, insertObj.GetType, transaction)
                 Next
@@ -284,7 +284,7 @@ Namespace Core
                 End Try
                 Throw
             Finally
-                _provider.Disconnect()
+                _connection.Disconnect()
             End Try
         End Sub
 

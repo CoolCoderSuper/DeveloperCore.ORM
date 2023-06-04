@@ -1,6 +1,6 @@
 Namespace Core
     Public interface ICommand
-        Property Connection As IProvider
+        Property Connection As IConnection
         Property Transaction As ITransaction
         Function Execute() As Integer
     end interface

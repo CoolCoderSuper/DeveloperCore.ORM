@@ -1,5 +1,5 @@
 ﻿Namespace Core
-    Public interface IProvider
+    Public interface IConnection
         ReadOnly Property Connection As Object
         Sub Connect()
         Sub Disconnect()

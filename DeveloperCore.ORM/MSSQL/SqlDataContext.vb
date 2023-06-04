@@ -5,7 +5,7 @@ Namespace MSSQL
         Inherits DataContext
 
         Public Sub New(connStr As String)
-            MyBase.New(New MSSQLProvider(connStr))
+            MyBase.New(New MSSQLConnection(connStr))
         End Sub
     End Class
 End NameSpace
