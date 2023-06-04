@@ -13,8 +13,8 @@ Namespace MSSQL
             Return CreateCommand().ExecuteNonQuery()
         End Function
         
-        Public Function Query() As SqlDataReader Implements ICommand.Query
-            Return CreateCommand().ExecuteReader()
+        Public Function Query() As IReader Implements ICommand.Query
+            Return New MSSQLReader(CreateCommand().ExecuteReader())
         End Function
 
         Private Function CreateCommand() As SqlCommand

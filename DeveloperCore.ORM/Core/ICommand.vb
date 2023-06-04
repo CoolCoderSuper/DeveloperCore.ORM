@@ -1,5 +1,3 @@
-Imports Microsoft.Data.SqlClient
-
 Namespace Core
     Public Interface ICommand
         Property Connection As IConnection
@@ -7,6 +5,6 @@ Namespace Core
         ReadOnly Property Parameters As Dictionary(Of String, Object)
         Property CommandText As String
         Function Execute() As Integer
-        Function Query() As SqlDataReader
+        Function Query() As IReader
     End Interface
 End Namespace

@@ -3,7 +3,6 @@ Imports System.Data
 Imports System.Reflection
 Imports System.Reflection.Emit
 Imports DeveloperCore.ORM.Attributes
-Imports Microsoft.Data.SqlClient
 
 Namespace Core
     'TODO: FK editing like in linq2sql
@@ -35,7 +34,7 @@ Namespace Core
                 For i As Integer = 0 To params.Length - 1
                     cmd.Parameters.Add($"@Item{i + 1}", params(i))
                 Next
-                Dim sdr As SqlDataReader = cmd.Query()
+                Dim sdr As IReader = cmd.Query()
                 Dim props As New Dictionary(Of String, PropertyInfo)
                 Dim allProps As PropertyInfo() = type.GetProperties
                 Dim keyProp As PropertyInfo = allProps.FirstOrDefault(Function(x) x.CustomAttributes.Any(Function(y) y.AttributeType.FullName = "DeveloperCore.ORM.Attributes.KeyAttribute"))
@@ -64,7 +63,7 @@ Namespace Core
                     _propDelegateCache.Add(type.FullName, propDelegates)
                 End If
                 While sdr.Read
-                    Dim record As IDataRecord = sdr
+                    Dim record As IDataRecord = sdr.GetRecord()
                     Dim obj As Object = Activator.CreateInstance(type)
                     Dim keyValue As String = Nothing
                     For i As Integer = 0 To record.FieldCount - 1
