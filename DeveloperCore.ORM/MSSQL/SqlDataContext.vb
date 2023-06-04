@@ -8,4 +8,4 @@ Namespace MSSQL
             MyBase.New(New MSSQLConnection(connStr))
         End Sub
     End Class
-End NameSpace
+End Namespace

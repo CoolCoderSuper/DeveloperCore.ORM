@@ -24,4 +24,4 @@ Namespace MSSQL
             _transaction.Rollback()
         End Sub
     End Class
-End NameSpace
+End Namespace

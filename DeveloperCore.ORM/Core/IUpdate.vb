@@ -2,11 +2,10 @@
 Imports Microsoft.Data.SqlClient
 
 Namespace Core
-
-    Public interface IUpdate
+    Public Interface IUpdate
         Function Table(tableName As String) As MSSQLUpdate
         Function [Set](column As String, value As Object) As MSSQLUpdate
         Function Filter(column As String, value As Object) As MSSQLUpdate
         Function GetCommand() As ICommand
-    end interface
-End NameSpace
+    End Interface
+End Namespace

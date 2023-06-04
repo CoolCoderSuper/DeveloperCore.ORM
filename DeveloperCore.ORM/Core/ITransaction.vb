@@ -1,7 +1,7 @@
 Namespace Core
-    Public interface ITransaction
+    Public Interface ITransaction
         ReadOnly Property Transaction As Object
         Sub Commit()
         Sub Rollback()
-    end interface
+    End Interface
 End NameSpace

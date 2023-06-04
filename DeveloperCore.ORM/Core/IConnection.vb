@@ -1,5 +1,5 @@
 ﻿Namespace Core
-    Public interface IConnection
+    Public Interface IConnection
         ReadOnly Property Connection As Object
         Sub Connect()
         Sub Disconnect()
@@ -7,5 +7,5 @@
         Function Update() As IUpdate
         Function Delete() As IDelete
         Function Transaction() As ITransaction
-    end interface
-End NameSpace
+    End Interface
+End Namespace

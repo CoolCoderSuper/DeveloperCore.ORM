@@ -3,7 +3,6 @@ Imports DeveloperCore.ORM.Core
 Imports Microsoft.Data.SqlClient
 
 Namespace MSSQL
-
     Public Class MSSQLUpdate
         Implements IUpdate
         Private _tableName As String
@@ -40,4 +39,4 @@ Namespace MSSQL
             Return cmd
         End Function
     End Class
-End NameSpace
+End Namespace

@@ -2,10 +2,9 @@
 Imports Microsoft.Data.SqlClient
 
 Namespace Core
-
-    Public interface IDelete
+    Public Interface IDelete
         Function Table(tableName As String) As MSSQLDelete
         Function Filter(column As String, value As Object) As MSSQLDelete
         Function GetCommand() As ICommand
-    end interface
-End NameSpace
+    End Interface
+End Namespace

@@ -40,4 +40,4 @@ Namespace MSSQL
             Return New MSSQLTransaction(_conn.BeginTransaction())
         End Function
     End Class
-End NameSpace
+End Namespace

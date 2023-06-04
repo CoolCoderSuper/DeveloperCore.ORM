@@ -6,7 +6,6 @@ Imports DeveloperCore.ORM.Attributes
 Imports Microsoft.Data.SqlClient
 
 Namespace Core
-
     'TODO: FK editing like in linq2sql
     'TODO: Fetch should use delayed query like ForeignKeyEnumerable
     Public MustInherit Class DataContext
@@ -287,6 +286,5 @@ Namespace Core
                 _connection.Disconnect()
             End Try
         End Sub
-
     End Class
-End NameSpace
+End Namespace

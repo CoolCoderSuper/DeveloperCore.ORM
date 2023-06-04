@@ -3,7 +3,6 @@ Imports DeveloperCore.ORM.Core
 Imports Microsoft.Data.SqlClient
 
 Namespace MSSQL
-
     Public Class MSSQLInsert
         Implements IInsert
         Private _tableName As String
@@ -30,4 +29,4 @@ Namespace MSSQL
             Return cmd
         End Function
     End Class
-End NameSpace
+End Namespace
