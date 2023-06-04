@@ -28,16 +28,16 @@ Namespace MSSQL
         End Function
 
         Public Function GetCommand() As ICommand Implements IUpdate.GetCommand
-            Dim cmd As New SqlCommand
+            Dim cmd As New MSSQLCommand()
             Dim sql As New StringBuilder($"update [{_tableName}] set ")
             For Each kvp As KeyValuePair(Of String, Object) In _values
                 sql.Append($"[{kvp.Key}]=@{kvp.Key}{If(kvp.Equals(_values.Last), " ", ",")}")
-                cmd.Parameters.AddWithValue($"@{kvp.Key}", kvp.Value)
+                cmd.Parameters.Add($"@{kvp.Key}", kvp.Value)
             Next
             sql.Append($"where [{_filterColumn}]=@{_filterColumn}")
             cmd.CommandText = sql.ToString
-            cmd.Parameters.AddWithValue($"@{_filterColumn}", _filterValue)
-            Return New MSSQLCommand(cmd)
+            cmd.Parameters.Add($"@{_filterColumn}", _filterValue)
+            Return cmd
         End Function
     End Class
 End NameSpace

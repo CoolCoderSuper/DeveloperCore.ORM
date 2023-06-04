@@ -21,10 +21,10 @@ Namespace MSSQL
         End Function
     
         Public Function GetCommand() As ICommand Implements IDelete.GetCommand
-            Dim cmd As New SqlCommand
+            Dim cmd As New MSSQLCommand()
             cmd.CommandText = $"delete from [{_tableName}] where [{_filterColumn}]=@{_filterColumn}"
-            cmd.Parameters.AddWithValue($"@{_filterColumn}", _filterValue)
-            Return New MSSQLCommand(cmd)
+            cmd.Parameters.Add($"@{_filterColumn}", _filterValue)
+            Return cmd
         End Function
     End Class
 End NameSpace

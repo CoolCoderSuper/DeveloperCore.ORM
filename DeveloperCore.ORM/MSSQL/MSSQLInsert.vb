@@ -20,14 +20,14 @@ Namespace MSSQL
         End Function
     
         Public Function GetCommand() As ICommand Implements IInsert.GetCommand
-            Dim cmd As New SqlCommand
+            Dim cmd As New MSSQLCommand()
             Dim sql As New StringBuilder($"insert into [{_tableName}] values (")
             For Each value As Object In _values
                 sql.Append($"@{value}{If(value.Equals(_values.Last), ")", ",")}")
-                cmd.Parameters.AddWithValue($"@{value}", value)
+                cmd.Parameters.Add($"@{value}", value)
             Next
             cmd.CommandText = sql.ToString
-            Return New MSSQLCommand(cmd)
+            Return cmd
         End Function
     End Class
 End NameSpace
