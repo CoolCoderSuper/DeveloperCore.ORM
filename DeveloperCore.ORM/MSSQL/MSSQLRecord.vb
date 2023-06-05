@@ -23,7 +23,13 @@ Namespace MSSQL
         Public ReadOnly Default Property Item(i As Integer) As Object Implements IRecord.Item
             Get
                 Return _record(i)
-            End get
+            End Get
+        End Property
+        
+        Public ReadOnly Default Property Item(col As String) As Object Implements IRecord.Item
+            Get
+                Return _record(col)
+            End Get
         End Property
     End Class
 End NameSpace

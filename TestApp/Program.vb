@@ -10,7 +10,7 @@ Module Program
     Sub Main()
         Dim dc As DataContext = New SqlDataContext(ConnectionString) With {.EnableChangeTracking = True}
         Dim res As List(Of Person) = dc.Fetch(Of Person)("select * from [User]").ToList
-        'Dim assignments As List(Of Assignment) = res.First.Assignments.ToList
+        Dim assignments As List(Of Assignment) = res.First.Assignments.ToList
         'Dim u = assignments.First.User.Value
         'dc.SubmitChanges()
         'Dim sRes As List(Of Person) = Person.Fetch("select * from [User]", ConnectionString)
