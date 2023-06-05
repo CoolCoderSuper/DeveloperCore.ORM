@@ -1,5 +1,4 @@
 Imports System.ComponentModel
-Imports System.Data
 Imports System.Reflection
 Imports System.Reflection.Emit
 Imports DeveloperCore.ORM.Attributes
@@ -63,7 +62,7 @@ Namespace Core
                     _propDelegateCache.Add(type.FullName, propDelegates)
                 End If
                 While sdr.Read
-                    Dim record As IDataRecord = sdr.GetRecord()
+                    Dim record As IRecord = sdr.GetRecord()
                     Dim obj As Object = Activator.CreateInstance(type)
                     Dim keyValue As String = Nothing
                     For i As Integer = 0 To record.FieldCount - 1

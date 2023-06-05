@@ -1,4 +1,3 @@
-Imports System.Data
 Imports DeveloperCore.ORM.Core
 Imports Microsoft.Data.SqlClient
 
@@ -15,8 +14,8 @@ Namespace MSSQL
             Return _reader.Read()
         End Function
         
-        Public Function GetRecord() As IDataRecord Implements IReader.GetRecord
-            Return _reader
+        Public Function GetRecord() As IRecord Implements IReader.GetRecord
+            Return New MSSQLRecord(_reader)
         End Function
     End Class
 End NameSpace
