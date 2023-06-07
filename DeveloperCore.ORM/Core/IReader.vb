@@ -1,6 +1,6 @@
 Namespace Core
-    Public interface IReader
+    Public Interface IReader
         Function Read() As Boolean
         Function GetRecord() As IRecord
-    end interface
-End NameSpace
+    End Interface
+End Namespace

@@ -43,5 +43,9 @@ Namespace MSSQL
         Public Function Command() As ICommand Implements IConnection.Command
             Return New MSSQLCommand() With {.Connection = Me}
         End Function
+        
+        Public Function Generate() As IQueryGenerator Implements IConnection.Generate
+            Return New MSSQLQueryGenerator(Me)
+        End Function
     End Class
 End Namespace

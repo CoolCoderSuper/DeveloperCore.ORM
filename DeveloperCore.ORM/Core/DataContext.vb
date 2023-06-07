@@ -9,8 +9,8 @@ Namespace Core
     Public MustInherit Class DataContext
         Dim _changeSet As New ChangeSet
         ReadOnly _propDelegateCache As New Dictionary(Of String, Dictionary(Of String, Action(Of Object, Object)))
-        ReadOnly _connection As IConnection
-        
+        Public ReadOnly Property Connection As IConnection
+
         Public Property EnableChangeTracking As Boolean = False
 
         Public ReadOnly Property ChangeSet As ChangeSet
@@ -20,19 +20,23 @@ Namespace Core
         End Property
 
         Public Sub New(connection As IConnection)
-            _connection = connection
+            Me.Connection = connection
         End Sub
 
         Public Overridable Function Fetch(sql As String, type As Type, ParamArray params As Object()) As IEnumerable(Of Object)
+            If EnableChangeTracking AndAlso type.GetInterface(GetType(INotifyPropertyChanged).FullName) Is Nothing Then Throw New Exception("Change tracking is enabled, but the type does not implement INotifyPropertyChanged")
+            Dim cmd As ICommand = Connection.Command()
+            cmd.CommandText = sql
+            For i As Integer = 0 To params.Length - 1
+                cmd.Parameters.Add($"@Item{i + 1}", params(i))
+            Next
+            Return Fetch(type, cmd)
+        End Function
+
+        Public Overridable Function Fetch(type As Type, cmd As ICommand) As IEnumerable(Of Object)
             Try
-                If EnableChangeTracking AndAlso type.GetInterface(GetType(INotifyPropertyChanged).FullName) Is Nothing Then Throw New Exception("Change tracking is enabled, but the type does not implement INotifyPropertyChanged")
-                _connection.Connect()
+                Connection.Connect()
                 Dim results As New List(Of Object)
-                Dim cmd As ICommand = _connection.Command()
-                cmd.CommandText = sql
-                For i As Integer = 0 To params.Length - 1
-                    cmd.Parameters.Add($"@Item{i + 1}", params(i))
-                Next
                 Dim sdr As IReader = cmd.Query()
                 Dim props As New Dictionary(Of String, PropertyInfo)
                 Dim allProps As PropertyInfo() = type.GetProperties
@@ -101,7 +105,7 @@ Namespace Core
                 End While
                 Return results
             Finally
-                _connection.Disconnect()
+                Connection.Disconnect()
             End Try
         End Function
 
@@ -126,11 +130,15 @@ Namespace Core
             Return Fetch(sql, GetType(T), params).Cast(Of T).ToList
         End Function
 
+        Public Function Fetch(Of T)(cmd As ICommand) As IEnumerable(Of T)
+            Return Fetch(GetType(T), cmd).Cast(Of T).ToList
+        End Function
+
         Public Overridable Sub Insert(obj As Object, type As Type)
             Dim transaction As ITransaction
             Try
-                _connection.Connect()
-                transaction = _connection.Transaction()
+                Connection.Connect()
+                transaction = Connection.Transaction()
                 Insert(obj, type, transaction)
                 transaction.Commit()
             Catch ex As Exception
@@ -141,20 +149,20 @@ Namespace Core
                 End Try
                 Throw
             Finally
-                _connection.Disconnect()
+                Connection.Disconnect()
             End Try
         End Sub
 
         Public Overridable Sub Insert(obj As Object, type As Type, transaction As ITransaction)
             Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
             Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
-            Dim insert As IInsert = _connection.Insert()
+            Dim insert As IInsert = Connection.Insert()
             insert.Table(If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name))
             For Each prop As PropertyInfo In props
                 insert.Set(prop.GetValue(obj))
             Next
             With insert.GetCommand()
-                .Connection = _connection
+                .Connection = Connection
                 .Transaction = transaction
                 .Execute()
             End With
@@ -167,8 +175,8 @@ Namespace Core
         Public Overridable Sub Update(obj As Object, type As Type)
             Dim transaction As ITransaction
             Try
-                _connection.Connect()
-                transaction = _connection.Transaction()
+                Connection.Connect()
+                transaction = Connection.Transaction()
                 Update(obj, type, transaction)
                 transaction.Commit()
             Catch ex As Exception
@@ -179,7 +187,7 @@ Namespace Core
                 End Try
                 Throw
             Finally
-                _connection.Disconnect()
+                Connection.Disconnect()
             End Try
         End Sub
 
@@ -188,7 +196,7 @@ Namespace Core
             Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
             Dim keyNameAttr As ColumnNameAttribute = keyProp.GetCustomAttribute(Of ColumnNameAttribute)
             Dim props As PropertyInfo() = type.GetProperties.Where(Function(x) x.GetCustomAttribute(Of IgnoreAttribute) Is Nothing AndAlso x.GetCustomAttribute(Of IdentityAttribute) Is Nothing).ToArray
-            Dim update As IUpdate = _connection.Update()
+            Dim update As IUpdate = Connection.Update()
             update.Table(If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name))
             For Each prop As PropertyInfo In props
                 Dim nameAttr As ColumnNameAttribute = prop.GetCustomAttribute(Of ColumnNameAttribute)
@@ -196,7 +204,7 @@ Namespace Core
             Next
             update.Filter(If(keyNameAttr Is Nothing, keyProp.Name, keyNameAttr.Name), keyProp.GetValue(obj))
             With update.GetCommand()
-                .Connection = _connection
+                .Connection = Connection
                 .Transaction = transaction
                 .Execute()
             End With
@@ -209,8 +217,8 @@ Namespace Core
         Public Overridable Sub Delete(obj As Object, type As Type)
             Dim transaction As ITransaction
             Try
-                _connection.Connect()
-                transaction = _connection.Transaction()
+                Connection.Connect()
+                transaction = Connection.Transaction()
                 Delete(obj, type, transaction)
                 transaction.Commit()
             Catch ex As Exception
@@ -221,17 +229,17 @@ Namespace Core
                 End Try
                 Throw
             Finally
-                _connection.Disconnect()
+                Connection.Disconnect()
             End Try
         End Sub
 
         Public Overridable Sub Delete(obj As Object, type As Type, transaction As ITransaction)
             Dim tableNameAttr As TableNameAttribute = type.GetCustomAttribute(Of TableNameAttribute)
             Dim keyProp As PropertyInfo = type.GetProperties.FirstOrDefault(Function(x) x.GetCustomAttribute(Of KeyAttribute) IsNot Nothing)
-            Dim delete As IDelete = _connection.Delete()
+            Dim delete As IDelete = Connection.Delete()
             delete.Table(If(tableNameAttr Is Nothing, type.Name, tableNameAttr.Name)).Filter(keyProp.Name, keyProp.GetValue(obj))
             With delete.GetCommand()
-                .Connection = _connection
+                .Connection = Connection
                 .Transaction = transaction
                 .Execute()
             End With
@@ -256,8 +264,8 @@ Namespace Core
         Public Sub SubmitChanges()
             Dim transaction As ITransaction
             Try
-                _connection.Connect()
-                transaction = _connection.Transaction()
+                Connection.Connect()
+                transaction = Connection.Transaction()
                 For Each insertObj As Object In _changeSet.Inserts
                     Insert(insertObj, insertObj.GetType, transaction)
                 Next
@@ -277,7 +285,7 @@ Namespace Core
                 End Try
                 Throw
             Finally
-                _connection.Disconnect()
+                Connection.Disconnect()
             End Try
         End Sub
     End Class

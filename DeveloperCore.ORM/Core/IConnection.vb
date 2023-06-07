@@ -8,5 +8,6 @@
         Function Delete() As IDelete
         Function Transaction() As ITransaction
         Function Command() As ICommand
+        Function Generate() As IQueryGenerator
     End Interface
 End Namespace
