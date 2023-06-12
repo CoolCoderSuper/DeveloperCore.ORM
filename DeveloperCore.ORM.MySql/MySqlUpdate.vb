@@ -1,7 +1,7 @@
 ﻿Imports System.Text
 Imports DeveloperCore.ORM.Core
 
-Public Class MSSQLUpdate
+Public Class MySqlUpdate
     Implements IUpdate
     Private _tableName As String
     Private ReadOnly _values As New Dictionary(Of String, Object)
@@ -25,7 +25,7 @@ Public Class MSSQLUpdate
     End Function
 
     Public Function GetCommand() As ICommand Implements IUpdate.GetCommand
-        Dim cmd As New MSSQLCommand()
+        Dim cmd As New MySqlCommand()
         Dim sql As New StringBuilder($"update [{_tableName}] set ")
         For Each kvp As KeyValuePair(Of String, Object) In _values
             sql.Append($"[{kvp.Key}]=@{kvp.Key}{If(kvp.Equals(_values.Last), " ", ",")}")

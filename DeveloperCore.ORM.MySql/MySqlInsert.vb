@@ -1,7 +1,7 @@
 ﻿Imports System.Text
 Imports DeveloperCore.ORM.Core
 
-Public Class MSSQLInsert
+Public Class MySqlInsert
     Implements IInsert
     Private _tableName As String
     Private ReadOnly _values As New List(Of Object)
@@ -17,7 +17,7 @@ Public Class MSSQLInsert
     End Function
     
     Public Function GetCommand() As ICommand Implements IInsert.GetCommand
-        Dim cmd As New MSSQLCommand()
+        Dim cmd As New MySqlCommand()
         Dim sql As New StringBuilder($"insert into [{_tableName}] values (")
         For Each value As Object In _values
             sql.Append($"@{value}{If(value.Equals(_values.Last), ")", ",")}")

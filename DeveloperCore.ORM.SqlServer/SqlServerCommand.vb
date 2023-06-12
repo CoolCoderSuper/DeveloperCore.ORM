@@ -1,7 +1,7 @@
 Imports DeveloperCore.ORM.Core
 Imports Microsoft.Data.SqlClient
 
-Public Class MSSQLCommand
+Public Class SqlServerCommand
     Implements ICommand
     Public Property Connection As IConnection Implements ICommand.Connection
     Public Property Transaction As ITransaction Implements ICommand.Transaction
@@ -13,7 +13,7 @@ Public Class MSSQLCommand
     End Function
         
     Public Function Query() As IReader Implements ICommand.Query
-        Return New MSSQLReader(CreateCommand().ExecuteReader())
+        Return New SqlServerReader(CreateCommand().ExecuteReader())
     End Function
 
     Private Function CreateCommand() As SqlCommand

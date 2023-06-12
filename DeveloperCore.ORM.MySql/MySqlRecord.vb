@@ -1,7 +1,7 @@
 Imports System.Data
 Imports DeveloperCore.ORM.Core
 
-Public Class MSSQLRecord
+Public Class MySqlRecord
     Implements IRecord
     Private ReadOnly _record As IDataRecord
 

@@ -1,7 +1,6 @@
 ﻿Imports System.Reflection
 Imports DeveloperCore.ORM.Attributes
 Imports DeveloperCore.ORM.Core
-Imports DeveloperCore.ORM.MSSQL
 
 Namespace Relation
     Public Class ForeignKeyEnumerable(Of T)

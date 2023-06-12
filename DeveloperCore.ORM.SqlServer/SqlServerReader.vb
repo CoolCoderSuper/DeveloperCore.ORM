@@ -1,7 +1,7 @@
 Imports DeveloperCore.ORM.Core
 Imports Microsoft.Data.SqlClient
 
-Public Class MSSQLReader
+Public Class SqlServerReader
     Implements IReader
     Private ReadOnly _reader As SqlDataReader
 
@@ -14,6 +14,6 @@ Public Class MSSQLReader
     End Function
         
     Public Function GetRecord() As IRecord Implements IReader.GetRecord
-        Return New MSSQLRecord(_reader)
+        Return New SqlServerRecord(_reader)
     End Function
 End Class

@@ -1,7 +1,7 @@
 Imports DeveloperCore.ORM.Core
 Imports Microsoft.Data.SqlClient
 
-Public Class MSSQLConnection
+Public Class SqlServerConnection
     Implements IConnection
     Private ReadOnly _conn As SqlConnection
         
@@ -24,26 +24,26 @@ Public Class MSSQLConnection
     End Sub
         
     Public Function Insert() As IInsert Implements IConnection.Insert
-        Return New MSSQLInsert()
+        Return New SqlServerInsert()
     End Function
         
     Public Function Update() As IUpdate Implements IConnection.Update
-        Return New MSSQLUpdate()
+        Return New SqlServerUpdate()
     End Function
         
     Public Function Delete() As IDelete Implements IConnection.Delete
-        Return New MSSQLDelete()
+        Return New SqlServerDelete()
     End Function
         
     Public Function Transaction() As ITransaction Implements IConnection.Transaction
-        Return New MSSQLTransaction(_conn.BeginTransaction())
+        Return New SqlServerTransaction(_conn.BeginTransaction())
     End Function
         
     Public Function Command() As ICommand Implements IConnection.Command
-        Return New MSSQLCommand() With {.Connection = Me}
+        Return New SqlServerCommand() With {.Connection = Me}
     End Function
         
     Public Function Generate() As IQueryGenerator Implements IConnection.Generate
-        Return New MSSQLQueryGenerator(Me)
+        Return New SqlServerQueryGenerator(Me)
     End Function
 End Class

@@ -1,6 +1,6 @@
 ﻿Imports DeveloperCore.ORM.Core
 
-Public Class MSSQLQueryGenerator
+Public Class SqlServerQueryGenerator
     Implements IQueryGenerator
     Private ReadOnly _connection As IConnection
     Private _table As String

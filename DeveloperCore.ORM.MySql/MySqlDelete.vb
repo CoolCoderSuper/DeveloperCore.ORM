@@ -1,6 +1,6 @@
 ﻿Imports DeveloperCore.ORM.Core
 
-Public Class MSSQLDelete
+Public Class MySqlDelete
     Implements IDelete
     Private _tableName As String
     Private _filterColumn As String
@@ -18,7 +18,7 @@ Public Class MSSQLDelete
     End Function
     
     Public Function GetCommand() As ICommand Implements IDelete.GetCommand
-        Dim cmd As New MSSQLCommand()
+        Dim cmd As New MySqlCommand()
         cmd.CommandText = $"delete from [{_tableName}] where [{_filterColumn}]=@{_filterColumn}"
         cmd.Parameters.Add($"@{_filterColumn}", _filterValue)
         Return cmd

@@ -1,7 +1,5 @@
-﻿Imports DeveloperCore.ORM.MSSQL
-
-Namespace Core
-    Public interface IQueryGenerator
+﻿Namespace Core
+    Public Interface IQueryGenerator
         Function From(table As String) As IQueryGenerator
         Function [Select](col As String) As IQueryGenerator
         Function [Select](ParamArray cols As String()) As IQueryGenerator
@@ -14,5 +12,5 @@ Namespace Core
         Function OrderBy(col As String) As IQueryGenerator
         Function OrderByDesc(col As String) As IQueryGenerator
         Function GetCommand() As ICommand
-    end interface
-End NameSpace
+    End Interface
+End Namespace

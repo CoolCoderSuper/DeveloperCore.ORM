@@ -1,7 +1,4 @@
-﻿Imports DeveloperCore.ORM.MSSQL
-Imports Microsoft.Data.SqlClient
-
-Namespace Core
+﻿Namespace Core
     Public Interface IDelete
         Function Table(tableName As String) As IDelete
         Function Filter(column As String, value As Object) As IDelete

@@ -1,7 +1,7 @@
 Imports DeveloperCore.ORM.Core
 Imports Microsoft.Data.SqlClient
 
-Public Class MSSQLTransaction
+Public Class SqlServerTransaction
     Implements ITransaction
     Private ReadOnly _transaction As SqlTransaction
 
