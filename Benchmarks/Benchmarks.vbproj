@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DeveloperCore.ORM.MSSQL\DeveloperCore.ORM.MSSQL.vbproj" />
+    <ProjectReference Include="..\DeveloperCore.ORM.SqlServer\DeveloperCore.ORM.SqlServer.vbproj" />
     <ProjectReference Include="..\DeveloperCore.ORM\DeveloperCore.ORM.vbproj" />
 	  <Analyzer Include="..\ORMGenerator\bin\Debug\netstandard2.0\ORMGenerator.dll" />
   </ItemGroup>

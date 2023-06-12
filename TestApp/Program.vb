@@ -1,7 +1,7 @@
 Imports System.ComponentModel
 Imports DeveloperCore.ORM.Attributes
 Imports DeveloperCore.ORM.Core
-Imports DeveloperCore.ORM.MSSQL
+Imports DeveloperCore.ORM.SqlServer
 Imports DeveloperCore.ORM.Relation
 
 Module Program
