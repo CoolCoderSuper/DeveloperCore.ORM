@@ -17,7 +17,7 @@ Public Class QueryBenchmark
 
     <GlobalSetup>
     Public Sub Setup()
-        _dc = New SqlDataContext("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True")
+        _dc = New SqlServerDataContext("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True")
         conn = New SqlConnection("Server=cch\codingcool;Database=SampleDB;Integrated Security=True;TrustServerCertificate=True")
         _db = New Database(conn)
     End Sub
