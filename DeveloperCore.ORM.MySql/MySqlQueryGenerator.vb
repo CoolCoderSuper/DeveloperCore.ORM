@@ -36,12 +36,12 @@ Public Class MySqlQueryGenerator
     End Function
         
     Public Function Filter(col As String, op As String, val As String) As IQueryGenerator Implements IQueryGenerator.Filter
-        _filters.Add($"[{col}]{op}'{val}'")
+        _filters.Add($"`{col}`{op}'{val}'")
         Return Me
     End Function
         
     Public Function Filter(col As String, op As String, paramName As String, paramValue As String) As IQueryGenerator Implements IQueryGenerator.Filter
-        _filters.Add($"[{col}]{op}{paramName}")
+        _filters.Add($"`{col}`{op}{paramName}")
         _params.Add(paramName, paramValue)
         Return Me
     End Function
@@ -91,15 +91,15 @@ Public Class MySqlQueryGenerator
                 If Not first Then
                     sb.Append(", ")
                 End If
-                sb.Append("[")
+                sb.Append("`")
                 sb.Append(col)
-                sb.Append("]")
+                sb.Append("`")
                 first = False
             Next
         End If
-        sb.Append(" from [")
+        sb.Append(" from `")
         sb.Append(_table)
-        sb.Append("]")
+        sb.Append("`")
         If _filters.Any() Then
             sb.Append(" where")
         End If

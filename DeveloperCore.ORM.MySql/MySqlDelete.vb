@@ -19,7 +19,7 @@ Public Class MySqlDelete
     
     Public Function GetCommand() As ICommand Implements IDelete.GetCommand
         Dim cmd As New MySqlCommand()
-        cmd.CommandText = $"delete from [{_tableName}] where [{_filterColumn}]=@{_filterColumn}"
+        cmd.CommandText = $"delete from `{_tableName}` where `{_filterColumn}`=@{_filterColumn}"
         cmd.Parameters.Add($"@{_filterColumn}", _filterValue)
         Return cmd
     End Function

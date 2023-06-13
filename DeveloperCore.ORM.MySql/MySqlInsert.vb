@@ -18,7 +18,7 @@ Public Class MySqlInsert
     
     Public Function GetCommand() As ICommand Implements IInsert.GetCommand
         Dim cmd As New MySqlCommand()
-        Dim sql As New StringBuilder($"insert into [{_tableName}] values (")
+        Dim sql As New StringBuilder($"insert into `{_tableName}` values (")
         For Each value As Object In _values
             sql.Append($"@{value}{If(value.Equals(_values.Last), ")", ",")}")
             cmd.Parameters.Add($"@{value}", value)

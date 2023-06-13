@@ -26,12 +26,12 @@ Public Class MySqlUpdate
 
     Public Function GetCommand() As ICommand Implements IUpdate.GetCommand
         Dim cmd As New MySqlCommand()
-        Dim sql As New StringBuilder($"update [{_tableName}] set ")
+        Dim sql As New StringBuilder($"update `{_tableName}` set ")
         For Each kvp As KeyValuePair(Of String, Object) In _values
-            sql.Append($"[{kvp.Key}]=@{kvp.Key}{If(kvp.Equals(_values.Last), " ", ",")}")
+            sql.Append($"`{kvp.Key}`=@{kvp.Key}{If(kvp.Equals(_values.Last), " ", ",")}")
             cmd.Parameters.Add($"@{kvp.Key}", kvp.Value)
         Next
-        sql.Append($"where [{_filterColumn}]=@{_filterColumn}")
+        sql.Append($"where `{_filterColumn}`=@{_filterColumn}")
         cmd.CommandText = sql.ToString
         cmd.Parameters.Add($"@{_filterColumn}", _filterValue)
         Return cmd
